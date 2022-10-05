@@ -1,6 +1,8 @@
 %% Extreme Learning Machine (ELM)
 % Note: This implementation allows the weight change per iteration to be
 % restricted.
+%
+%%
 
 classdef ELM < handle    
     %% Properties 
