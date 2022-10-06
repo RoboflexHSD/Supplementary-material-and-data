@@ -35,17 +35,17 @@ classdef CLNN < handle
     % *SetAccess*: protected, *GetAccess*: public
     % * _Initialization_: Struct containing information about the initial
     % training; *SetAccess*: protected, *GetAccess*: public
-    % * _latest_updated_bins_: Array containing indices (columns) of bins (rows)
-    % that should be excluded when calling the get-method of the GRB;
+    % * _latest_updated_bins_: Array containing indices (columns) of bins
+    % (rows) that should be excluded when calling the get-method of the GRB;
     % *SetAccess*: private, *GetAccess*: private
     % * _layers_: Layer defining the ANNs structure; *SetAccess*:
     % immutable, *GetAccess*: private 
     % * _Normalization_: Struct containing information about the
     % normalization of the input and output data; *SetAccess*: private,
     % *GetAccess*: private 
-    % * _thetas_: Vector containing the *weights and bias*, which are
-    % updated during the continual learning phase; *SetAccess*: private,
-    % *GetAccess*: private 
+    % * _thetas_: Vector containing the weights, which are updated during
+    % the continual learning phase; *SetAccess*: private, *GetAccess*:
+    % private 
     % * _Updates_: Table containing information about the model updates 
     % during the continual learning phase; *SetAccess*: protected,
     % *GetAccess*: public 
@@ -68,9 +68,9 @@ classdef CLNN < handle
                                 'RMSE_train_N', NaN, ...
                                 'RMSE_eval_N', NaN ...
                                 );      
-        Updates = table('Size',[0, 5], ...
-                        'VariableTypes', {'double', 'double', 'double', 'double', 'double'},...
-                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta', 'deltabeta'} ...
+        Updates = table('Size',[0, 4], ...
+                        'VariableTypes', {'double', 'double', 'double', 'double'},...
+                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta'} ...
                         );
         Info = struct(  'Build', NaN, ...
                         'Initialization', NaN, ...
@@ -252,7 +252,7 @@ classdef CLNN < handle
             
             % Train network
             net = trainNetwork(x_train_N,y_train_N,obj.layers,options);
-            obj.thetas = [net.Layers(end-1).Weights, net.Layers(end-1).Bias];
+            obj.thetas = net.Layers(end-1).Weights;
             obj.Initialization.net = net;
                         
             % Eval network
@@ -365,9 +365,9 @@ classdef CLNN < handle
       % ============================== EOF ============================== %
       
       %% 
-      function thetas = cl_update(obj, x_new, y_new, hf, deltatheta, deltabeta)
+      function thetas = cl_update(obj, x_new, y_new, hf, deltatheta)
           %%%
-          %    thetas = cl_update(obj, x_new, y_new, hf, deltatheta, deltabeta)
+          %    thetas = cl_update(obj, x_new, y_new, hf, deltatheta)
           %%%
           %
           % Updates the ANN model by changing the weights in of the last
@@ -383,10 +383,6 @@ classdef CLNN < handle
           % * _deltatheta_ [optional]: Maximum absolute change of weights
           % per iteration. If this value is empty ([]), no restriction is
           % applied. Default: 0.1
-          % * _deltabeta_ [optional]: Maximum absolute change of bias
-          % per iteration. If this value is empty ([]), no restriction is
-          % applied. If this value is set to 0, the bais will not be
-          % changed/trained.Default: 0
           %
           % Returns: 
           % 
@@ -400,7 +396,6 @@ classdef CLNN < handle
               y_new double
               hf (1,1) double {mustBeInRange(hf, 0, 1)} = 0.1;
               deltatheta double {mustBePositive, mustBeScalarOrEmpty} = 0.1;
-              deltabeta double {mustBeNonnegative, mustBeScalarOrEmpty} = 0;
           end
           assert(size(x_new,2) == obj.Architecture.num_inputs, ...
                 'Size of x_new has to fit to obj.Architecture.num_inputs.')
@@ -408,14 +403,7 @@ classdef CLNN < handle
                 'Size of y_new has to fit to obj.Architecture.num_outputs.')
           assert(size(x_new,1) == size(y_new,1), ...
                 'Size of x_new has to fit to size of y_new.')
-          
-          if isempty(deltatheta)
-              deltatheta = Inf;
-          end
-          if isempty(deltabeta)
-              deltabeta = Inf;
-          end  
-          
+                    
           % Find number of elements from data stream
           ds = size(x_new,1);
           
@@ -440,14 +428,19 @@ classdef CLNN < handle
           [~, ~, A] = obj.cl_pred(x);
           y_N = normalize(y, 'center', obj.Normalization.C_out, 'scale', obj.Normalization.S_out); 
           options = optimoptions('lsqlin','Algorithm','interior-point','Diagnostics','off','Display','off');
-          lb = double([obj.thetas(1:end-1)-deltatheta, obj.thetas(end)-deltabeta]); 
-          ub = double([obj.thetas(1:end-1)+deltatheta, obj.thetas(end)+deltabeta]); 
+          if isempty(deltatheta)
+              lb = [];
+              ub = [];
+          else
+             lb = double(obj.thetas-deltatheta); 
+             ub = double(obj.thetas+deltatheta); 
+          end
           thetas = lsqlin(double(A'),y_N,[],[],[],[],lb,ub,[],options);
 
           
           % Set properties
           obj.thetas = thetas';
-          obj.Updates = [obj.Updates; {size(obj.Updates,1)+1, ds, hf, deltatheta, deltabeta}];
+          obj.Updates = [obj.Updates; {size(obj.Updates,1)+1, ds, hf, deltatheta}];
           obj.Info.LatestUpdate = datetime;
       end
       % ============================== EOF ============================== %
@@ -480,8 +473,7 @@ classdef CLNN < handle
                 'Size of x has to fit to obj.Architecture.num_inputs.')
           
           x_N = normalize(x, 'center', obj.Normalization.C_in, 'scale', obj.Normalization.S_in);  
-          A = [activations(obj.Initialization.net, x_N, obj.Initialization.net.Layers(end-2).Name); ...
-               ones(1, size(x_N,1))];
+          A = activations(obj.Initialization.net, x_N, obj.Initialization.net.Layers(end-2).Name);
           y_pred_N = (obj.thetas*A)';
           y_pred = obj.re_normalize(y_pred_N, obj.Normalization.S_out, obj.Normalization.C_out);
       end
@@ -566,11 +558,11 @@ classdef CLNN < handle
           %%%
           
           obj.Buffer = copy(obj.BufferInitialized);
-          obj.thetas = [obj.Initialization.net.Layers(end-1).Weights, obj.Initialization.net.Layers(end-1).Bias];
+          obj.thetas = obj.Initialization.net.Layers(end-1).Weights;
           obj.latest_updated_bins = double.empty;
-          obj.Updates = table('Size',[0, 5], ...
-                        'VariableTypes', {'double', 'double', 'double', 'double', 'double'},...
-                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta', 'deltabeta'} ...
+          obj.Updates = table('Size',[0, 4], ...
+                        'VariableTypes', {'double', 'double', 'double', 'double'},...
+                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta'} ...
                         );
           obj.Info.LatestUpdate = NaN;
           obj.Info.LatestReset = datetime;

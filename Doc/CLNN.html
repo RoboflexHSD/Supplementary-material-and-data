@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Continual Learning Neural Network (CLNN)</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-10-05"><meta name="DC.source" content="CLNN.m"><style type="text/css">
+      --><title>Continual Learning Neural Network (CLNN)</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-10-06"><meta name="DC.source" content="CLNN.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,12 +67,12 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Continual Learning Neural Network (CLNN)</h1><!--introduction--><p>CLNN class to apply continual model update for artificial neural regression networks. Use this class to:</p><div><ul><li>implement an ANN model object for multidimensional regression</li><li>perform an initial training for this ANN with a representative   dataset for the whole feature space using backpropagation</li><li>perform model updates on a non-representative subset of new data</li><li>make predictions on initial or current model</li></ul></div><p><b>Note</b>: <i>The neural networks should contain at least 2 hidden layers, because the last hidden layer does not contain an activation function and therefore only a linear mapping is possible when using only one hidden layer. The reason for omitting the activation function in the last hidden layer is that the ReLU function is used as activation function and therefore only positive outputs would be possible during intial training, since the weights in the output layer are frozen to one (positive weights only!).</i></p><p><b>This class requires the MATLAB Deep Learning Toolbox!</b></p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Properties</a></li><li><a href="#3">Constructor</a></li><li><a href="#7">Methods</a></li><li><a href="#40">Static Methods</a></li></ul></div><h2 id="2">Properties</h2><div><ul><li><i>Architecture</i>: Struct containing information on the ANNs architecture; <b>SetAccess</b>: immutable; <b>GetAccess</b>: public</li><li><i>Buffer</i>: Gridded Ring Buffer object to manage historical data; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>BufferInitialized</i>: Copy of <i>Buffer</i> that is created after initialization. Needed for resetting to the state after initial training; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Info</i>: Struct containing information about changes of the object; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>Initialization</i>: Struct containing information about the initial training; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>latest_updated_bins</i>: Array containing indices (columns) of bins (rows) that should be excluded when calling the get-method of the GRB; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>layers</i>: Layer defining the ANNs structure; <b>SetAccess</b>: immutable, <b>GetAccess</b>: private</li><li><i>Normalization</i>: Struct containing information about the normalization of the input and output data; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>thetas</i>: Vector containing the <b>weights and bias</b>, which are updated during the continual learning phase; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Updates</i>: Table containing information about the model updates during the continual learning phase; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li></ul></div><h2 id="3">Constructor</h2><pre class="language-matlab">obj = CLNN(x_limits, num_outputs, hidden_layer, approx_grid_dx, samples_per_bin)
+  </style></head><body><div class="content"><h1>Continual Learning Neural Network (CLNN)</h1><!--introduction--><p>CLNN class to apply continual model update for artificial neural regression networks. Use this class to:</p><div><ul><li>implement an ANN model object for multidimensional regression</li><li>perform an initial training for this ANN with a representative   dataset for the whole feature space using backpropagation</li><li>perform model updates on a non-representative subset of new data</li><li>make predictions on initial or current model</li></ul></div><p><b>Note</b>: <i>The neural networks should contain at least 2 hidden layers, because the last hidden layer does not contain an activation function and therefore only a linear mapping is possible when using only one hidden layer. The reason for omitting the activation function in the last hidden layer is that the ReLU function is used as activation function and therefore only positive outputs would be possible during intial training, since the weights in the output layer are frozen to one (positive weights only!).</i></p><p><b>This class requires the MATLAB Deep Learning Toolbox!</b></p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Properties</a></li><li><a href="#3">Constructor</a></li><li><a href="#7">Methods</a></li><li><a href="#40">Static Methods</a></li></ul></div><h2 id="2">Properties</h2><div><ul><li><i>Architecture</i>: Struct containing information on the ANNs architecture; <b>SetAccess</b>: immutable; <b>GetAccess</b>: public</li><li><i>Buffer</i>: Gridded Ring Buffer object to manage historical data; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>BufferInitialized</i>: Copy of <i>Buffer</i> that is created after initialization. Needed for resetting to the state after initial training; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Info</i>: Struct containing information about changes of the object; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>Initialization</i>: Struct containing information about the initial training; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>latest_updated_bins</i>: Array containing indices (columns) of bins (rows) that should be excluded when calling the get-method of the GRB; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>layers</i>: Layer defining the ANNs structure; <b>SetAccess</b>: immutable, <b>GetAccess</b>: private</li><li><i>Normalization</i>: Struct containing information about the normalization of the input and output data; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>thetas</i>: Vector containing the weights, which are updated during the continual learning phase; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Updates</i>: Table containing information about the model updates during the continual learning phase; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li></ul></div><h2 id="3">Constructor</h2><pre class="language-matlab">obj = CLNN(x_limits, num_outputs, hidden_layer, approx_grid_dx, samples_per_bin)
 </pre><p>Creates an object of CLNN with non-trained ANN model and empty GRB.</p><p>Arguments:</p><div><ul><li><i>x_limits</i>: 2D-array containing the lower (first column) and upper (second column) boundaries of the considered input space: [x1_min, x1_max; ...].</li><li><i>num_outputs</i>: Number of model outputs.</li><li><i>hidden_layer</i> [optional]: Nodes per layers. Default: [132, 92, 30]</li><li><i>approx_grid_dx</i> [optional]: Approx. grid spacing for each dimension of the input space:discretization in x1, x2, ... Default: diff(x_limits, [], 2)/10</li><li><i>samples_per_bin</i> [optional]: number of samples per bin. Default: 5</li></ul></div><p>Returns:</p><div><ul><li><i>CLNN-object</i></li></ul></div><h2 id="7">Methods</h2><pre class="language-matlab">[RMSE_train, RMSE_eval, RMSE_train_N, RMSE_eval_N] =
 init_train(obj, x, y, eval_split, options)
 </pre><p>Performs initial training on static dataset using backpropagation.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li><li><i>eval_split</i> [optional]: fraction of data separated for validation. Default: 0</li><li><i>options</i> [optional]: trainingOptions-object   (nnet.cnn.TrainingOptionsADAM or    nnet.cnn.TrainingOptionsRMSProp or    nnet.cnn.TrainingOptionsSGDM). Default: nnet.cnn.TrainingOptionsADAM</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE_train</i>: RMSE on training data.</li><li><i>RMSE_eval</i>: RMSE on validation data.</li><li><i>RMSE_train_N</i>: Normalized RMSE on training data.</li><li><i>RMSE_eval_N</i>: Normalized RMSE on validation data.</li></ul></div><pre class="language-matlab">[y_pred, y_pred_N] = init_pred(obj, x)
 </pre><p>Performs prediction on initial model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li></ul></div><p>Returns:</p><div><ul><li><i>y_pred</i>: Predictions on <i>x</i>.</li><li><i>y_pred_N</i>: Normalized predictions on <i>x</i>.</li></ul></div><pre class="language-matlab">RMSE = init_eval(obj, x, y)
-</pre><p>Calculates the RMSE for a set of features and targets for initial model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE</i>: RMSE for initial model.</li><li><i>RMSE_N</i>: Normalized RMSE for initial model.</li></ul></div><pre>  thetas = cl_update(obj, x_new, y_new, hf, deltatheta, deltabeta)</pre><p>Updates the ANN model by changing the weights in of the last layer using convex optimization.</p><p>Arguments:</p><div><ul><li><i>x_new</i>: Inputs (rows: samples; cols: features).</li><li><i>y_new</i>: Outputs (rows: samples; cols: outputs).</li><li><i>hf</i> [optional]: Fraction of additional historical used for optimization. The historical data is extracted from the GRB. Default: 0.1</li><li><i>deltatheta</i> [optional]: Maximum absolute change of weights per iteration. If this value is empty ([]), no restriction is applied. Default: 0.1</li><li><i>deltabeta</i> [optional]: Maximum absolute change of bias per iteration. If this value is empty ([]), no restriction is applied. If this value is set to 0, the bais will not be changed/trained.Default: 0</li></ul></div><p>Returns:</p><div><ul><li><i>thetas</i>: Updated thetas.</li></ul></div><pre class="language-matlab">[y_pred, y_pred_N, A] = cl_pred(obj, x)
+</pre><p>Calculates the RMSE for a set of features and targets for initial model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE</i>: RMSE for initial model.</li><li><i>RMSE_N</i>: Normalized RMSE for initial model.</li></ul></div><pre>  thetas = cl_update(obj, x_new, y_new, hf, deltatheta)</pre><p>Updates the ANN model by changing the weights in of the last layer using convex optimization.</p><p>Arguments:</p><div><ul><li><i>x_new</i>: Inputs (rows: samples; cols: features).</li><li><i>y_new</i>: Outputs (rows: samples; cols: outputs).</li><li><i>hf</i> [optional]: Fraction of additional historical used for optimization. The historical data is extracted from the GRB. Default: 0.1</li><li><i>deltatheta</i> [optional]: Maximum absolute change of weights per iteration. If this value is empty ([]), no restriction is applied. Default: 0.1</li></ul></div><p>Returns:</p><div><ul><li><i>thetas</i>: Updated thetas.</li></ul></div><pre class="language-matlab">[y_pred, y_pred_N, A] = cl_pred(obj, x)
 </pre><p>Performs prediction on current, continual updated model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li></ul></div><p>Returns:</p><div><ul><li><i>y_pred</i>: Predictions on <i>x</i>.</li><li><i>y_pred_N</i>: Normalized predictions on <i>x</i>.</li><li><i>A</i>: Activations of the last hidden layer for <i>x</i> as input.</li></ul></div><pre class="language-matlab">[RMSE, RMSE_N] = cl_eval(obj, x, y)
 </pre><p>Calculates the RMSE for a set of features and targets for current, continual updated model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE</i>: RMSE for initial model.</li><li><i>RMSE_N</i>: Normalized RMSE for initial model.</li></ul></div><pre>  get_thetas(obj)</pre><p>Returns the current thetas of the CLNN-object.</p><p>Arguments:</p><div><ul><li><i>None</i></li></ul></div><p>Returns:</p><div><ul><li><i>thetas</i>: Current thetas.</li></ul></div><pre>  reset(obj)</pre><p>Resets the CLNN-object to the state after initial training.</p><p>Arguments:</p><div><ul><li><i>None</i></li></ul></div><p>Returns:</p><div><ul><li><i>None</i></li></ul></div><h2 id="40">Static Methods</h2><pre class="language-matlab">ret = re_normalize(N, S, C)
 </pre><p>Static and private method for inverse of nomalization.</p><p>Arguments:</p><div><ul><li><i>N</i>: Normalized values.</li><li><i>S</i>: Scaling values.</li><li><i>C</i>: Centering values.</li></ul></div><p>Returns:</p><div><ul><li><i>ret</i>: Values.</li></ul></div><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
@@ -114,17 +114,17 @@ classdef CLNN < handle
     % *SetAccess*: protected, *GetAccess*: public
     % * _Initialization_: Struct containing information about the initial
     % training; *SetAccess*: protected, *GetAccess*: public
-    % * _latest_updated_bins_: Array containing indices (columns) of bins (rows)
-    % that should be excluded when calling the get-method of the GRB;
+    % * _latest_updated_bins_: Array containing indices (columns) of bins
+    % (rows) that should be excluded when calling the get-method of the GRB;
     % *SetAccess*: private, *GetAccess*: private
     % * _layers_: Layer defining the ANNs structure; *SetAccess*:
     % immutable, *GetAccess*: private 
     % * _Normalization_: Struct containing information about the
     % normalization of the input and output data; *SetAccess*: private,
     % *GetAccess*: private 
-    % * _thetas_: Vector containing the *weights and bias*, which are
-    % updated during the continual learning phase; *SetAccess*: private,
-    % *GetAccess*: private 
+    % * _thetas_: Vector containing the weights, which are updated during
+    % the continual learning phase; *SetAccess*: private, *GetAccess*:
+    % private 
     % * _Updates_: Table containing information about the model updates 
     % during the continual learning phase; *SetAccess*: protected,
     % *GetAccess*: public 
@@ -147,9 +147,9 @@ classdef CLNN < handle
                                 'RMSE_train_N', NaN, ...
                                 'RMSE_eval_N', NaN ...
                                 );      
-        Updates = table('Size',[0, 5], ...
-                        'VariableTypes', {'double', 'double', 'double', 'double', 'double'},...
-                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta', 'deltabeta'} ...
+        Updates = table('Size',[0, 4], ...
+                        'VariableTypes', {'double', 'double', 'double', 'double'},...
+                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta'} ...
                         );
         Info = struct(  'Build', NaN, ...
                         'Initialization', NaN, ...
@@ -331,7 +331,7 @@ classdef CLNN < handle
             
             % Train network
             net = trainNetwork(x_train_N,y_train_N,obj.layers,options);
-            obj.thetas = [net.Layers(end-1).Weights, net.Layers(end-1).Bias];
+            obj.thetas = net.Layers(end-1).Weights;
             obj.Initialization.net = net;
                         
             % Eval network
@@ -444,9 +444,9 @@ classdef CLNN < handle
       % ============================== EOF ============================== %
       
       %% 
-      function thetas = cl_update(obj, x_new, y_new, hf, deltatheta, deltabeta)
+      function thetas = cl_update(obj, x_new, y_new, hf, deltatheta)
           %%%
-          %    thetas = cl_update(obj, x_new, y_new, hf, deltatheta, deltabeta)
+          %    thetas = cl_update(obj, x_new, y_new, hf, deltatheta)
           %%%
           %
           % Updates the ANN model by changing the weights in of the last
@@ -462,10 +462,6 @@ classdef CLNN < handle
           % * _deltatheta_ [optional]: Maximum absolute change of weights
           % per iteration. If this value is empty ([]), no restriction is
           % applied. Default: 0.1
-          % * _deltabeta_ [optional]: Maximum absolute change of bias
-          % per iteration. If this value is empty ([]), no restriction is
-          % applied. If this value is set to 0, the bais will not be
-          % changed/trained.Default: 0
           %
           % Returns: 
           % 
@@ -479,7 +475,6 @@ classdef CLNN < handle
               y_new double
               hf (1,1) double {mustBeInRange(hf, 0, 1)} = 0.1;
               deltatheta double {mustBePositive, mustBeScalarOrEmpty} = 0.1;
-              deltabeta double {mustBeNonnegative, mustBeScalarOrEmpty} = 0;
           end
           assert(size(x_new,2) == obj.Architecture.num_inputs, ...
                 'Size of x_new has to fit to obj.Architecture.num_inputs.')
@@ -487,14 +482,7 @@ classdef CLNN < handle
                 'Size of y_new has to fit to obj.Architecture.num_outputs.')
           assert(size(x_new,1) == size(y_new,1), ...
                 'Size of x_new has to fit to size of y_new.')
-          
-          if isempty(deltatheta)
-              deltatheta = Inf;
-          end
-          if isempty(deltabeta)
-              deltabeta = Inf;
-          end  
-          
+                    
           % Find number of elements from data stream
           ds = size(x_new,1);
           
@@ -519,14 +507,19 @@ classdef CLNN < handle
           [~, ~, A] = obj.cl_pred(x);
           y_N = normalize(y, 'center', obj.Normalization.C_out, 'scale', obj.Normalization.S_out); 
           options = optimoptions('lsqlin','Algorithm','interior-point','Diagnostics','off','Display','off');
-          lb = double([obj.thetas(1:end-1)-deltatheta, obj.thetas(end)-deltabeta]); 
-          ub = double([obj.thetas(1:end-1)+deltatheta, obj.thetas(end)+deltabeta]); 
+          if isempty(deltatheta)
+              lb = [];
+              ub = [];
+          else
+             lb = double(obj.thetas-deltatheta); 
+             ub = double(obj.thetas+deltatheta); 
+          end
           thetas = lsqlin(double(A'),y_N,[],[],[],[],lb,ub,[],options);
 
           
           % Set properties
           obj.thetas = thetas';
-          obj.Updates = [obj.Updates; {size(obj.Updates,1)+1, ds, hf, deltatheta, deltabeta}];
+          obj.Updates = [obj.Updates; {size(obj.Updates,1)+1, ds, hf, deltatheta}];
           obj.Info.LatestUpdate = datetime;
       end
       % ============================== EOF ============================== %
@@ -559,8 +552,7 @@ classdef CLNN < handle
                 'Size of x has to fit to obj.Architecture.num_inputs.')
           
           x_N = normalize(x, 'center', obj.Normalization.C_in, 'scale', obj.Normalization.S_in);  
-          A = [activations(obj.Initialization.net, x_N, obj.Initialization.net.Layers(end-2).Name); ...
-               ones(1, size(x_N,1))];
+          A = activations(obj.Initialization.net, x_N, obj.Initialization.net.Layers(end-2).Name);
           y_pred_N = (obj.thetas*A)';
           y_pred = obj.re_normalize(y_pred_N, obj.Normalization.S_out, obj.Normalization.C_out);
       end
@@ -645,11 +637,11 @@ classdef CLNN < handle
           %%%
           
           obj.Buffer = copy(obj.BufferInitialized);
-          obj.thetas = [obj.Initialization.net.Layers(end-1).Weights, obj.Initialization.net.Layers(end-1).Bias];
+          obj.thetas = obj.Initialization.net.Layers(end-1).Weights;
           obj.latest_updated_bins = double.empty;
-          obj.Updates = table('Size',[0, 5], ...
-                        'VariableTypes', {'double', 'double', 'double', 'double', 'double'},...
-                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta', 'deltabeta'} ...
+          obj.Updates = table('Size',[0, 4], ...
+                        'VariableTypes', {'double', 'double', 'double', 'double'},...
+                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta'} ...
                         );
           obj.Info.LatestUpdate = NaN;
           obj.Info.LatestReset = datetime;

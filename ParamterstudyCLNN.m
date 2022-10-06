@@ -59,7 +59,6 @@ for ii = 1:size(configs,1)
     % Perform initial training if necessary only
     if ~isequal(l, l_old)
         % Initial Training
-        rng(1)
         myCLNN = CLNN([ data.init.data.info.x_limits; ...
                         data.init.data.info.y_limits], ... 
                         params.num_out,            ... 
@@ -99,7 +98,6 @@ for ii = 1:size(configs,1)
     % ------------------------------------------------------------------- %
     % II) Continual Training
     % ------------------------------------------------------------------- %
-    rng(42)
     t = size(data.cl.data.out.x,1);
 
     % Preallocation 

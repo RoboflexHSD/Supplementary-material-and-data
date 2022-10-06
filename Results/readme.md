@@ -1,1 +1,1 @@
-Note: Depending on the seed, the results may vary slightly.
+*Note*: Depending on the seed, the results may vary slightly.
