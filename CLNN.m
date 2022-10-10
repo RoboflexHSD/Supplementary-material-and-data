@@ -3,7 +3,8 @@
 % regression networks.
 % Use this class to: 
 %
-% * implement an ANN model object for multidimensional regression
+% * implement an artificial neural network (ANN) model object for 
+% multidimensional regression
 % * perform an initial training for this ANN with a representative
 %   dataset for the whole feature space using backpropagation
 % * perform model updates on a non-representative subset of new data
@@ -18,7 +19,8 @@
 % since the weights in the output layer are frozen to one (positive weights
 % only!)._
 %
-% *This class requires the MATLAB Deep Learning Toolbox!*
+% *This class requires the MATLAB Deep Learning Toolbox and MATLAB 
+% Optimization Toolbox!*
 %
 %%
 
@@ -26,7 +28,8 @@ classdef CLNN < handle
     %% Properties 
     % * _Architecture_: Struct containing information on the ANNs
     % architecture; *SetAccess*: immutable; *GetAccess*: public
-    % * _Buffer_: Gridded Ring Buffer object to manage historical data;
+    % * _Buffer_: Gridded Ring Buffer (GRB) object to manage fraction of 
+    % historical data;
     % *SetAccess*: protected, *GetAccess*: public
     % * _BufferInitialized_: Copy of _Buffer_ that is created after 
     % initialization. Needed for resetting to the state after initial 
@@ -34,7 +37,8 @@ classdef CLNN < handle
     % * _Info_: Struct containing information about changes of the object; 
     % *SetAccess*: protected, *GetAccess*: public
     % * _Initialization_: Struct containing information about the initial
-    % training; *SetAccess*: protected, *GetAccess*: public
+    % training og the Neural Network; *SetAccess*: protected, *GetAccess*: 
+    % public
     % * _latest_updated_bins_: Array containing indices (columns) of bins
     % (rows) that should be excluded when calling the get-method of the GRB;
     % *SetAccess*: private, *GetAccess*: private
@@ -190,11 +194,16 @@ classdef CLNN < handle
             % * _x_: Inputs (rows: samples; cols: features).
             % * _y_: Outputs (rows: samples; cols: outputs).
             % * _eval_split_ [optional]: fraction of data separated for
-            % validation. Default: 0
+            % validation. 
+            % Default: 0
             % * _options_ [optional]: trainingOptions-object 
             %   (nnet.cnn.TrainingOptionsADAM or 
             %    nnet.cnn.TrainingOptionsRMSProp or 
-            %    nnet.cnn.TrainingOptionsSGDM). Default: nnet.cnn.TrainingOptionsADAM
+            %    nnet.cnn.TrainingOptionsSGDM). 
+            % Note: For detailed setting of training parameters 
+            % [trainingOptions()], see MATLAB Deep Learning Toolbox 
+            % Documentation.
+            % Default: nnet.cnn.TrainingOptionsADAM
             %
             % Returns: 
             % 
@@ -283,7 +292,8 @@ classdef CLNN < handle
             rand_shift = width.*rand(size(x_init_buffer)) - width/2;
             x_init_buffer = x_init_buffer + rand_shift;
             
-            % Initialize GRB - prediction on support points with init net
+            % Initialize GRB - prediction on support points with initial
+            % network
             x_init_buffer_N = normalize(x_init_buffer, 'center', obj.Normalization.C_in, 'scale', obj.Normalization.S_in); 
             y_init_buffer_N = predict(net, x_init_buffer_N);
             y_init_buffer = obj.re_normalize(y_init_buffer_N, obj.Normalization.S_out, obj.Normalization.C_out);
@@ -300,7 +310,7 @@ classdef CLNN < handle
           %   [y_pred, y_pred_N] = init_pred(obj, x)
           %%%
           %
-          % Performs prediction on initial model.
+          % Performs prediction on initially trained model.
           %
           % Arguments:
           %
@@ -388,6 +398,8 @@ classdef CLNN < handle
           % 
           % * _thetas_: Updated thetas.
           %
+          % Note: Optimization Toolbox for lsqlin-function required.
+          %
           %%%
           
           arguments
@@ -451,7 +463,7 @@ classdef CLNN < handle
           %   [y_pred, y_pred_N, A] = cl_pred(obj, x)
           %%%
           %
-          % Performs prediction on current, continual updated model.
+          % Performs prediction on current, continually updated model.
           %
           % Arguments:
           %
@@ -486,7 +498,7 @@ classdef CLNN < handle
           %%%
           %
           % Calculates the RMSE for a set of features and targets for
-          % current, continual updated model. 
+          % current, continually updated model. 
           %
           % Arguments:
           %
@@ -578,7 +590,7 @@ classdef CLNN < handle
           %   ret = re_normalize(N, S, C)
           %%%
           %
-          % Static and private method for inverse of nomalization.
+          % Static and private method for inverse of zscore nomalization.
           %
           % Arguments:
           %

@@ -2,13 +2,15 @@
 % Note: This implementation allows the weight change per iteration to be
 % restricted.
 %
+% *This class requires the MATLAB Optimization Toolbox!*
 %%
 
 classdef ELM < handle    
     %% Properties 
     % * _Architecture_: Struct containing information on the ELMs
     % architecture; *SetAccess*: immutable; *GetAccess*: public
-    % * _Buffer_: Gridded Ring Buffer object to manage historical data;
+    % * _Buffer_: Gridded Ring Buffer (GRB) object to manage fraction of 
+    % historical data;
     % *SetAccess*: protected, *GetAccess*: public
     % * _BufferInitialized_: Copy of _Buffer_ that is created after 
     % initialization. Needed for resetting to the state after initial 
@@ -90,7 +92,7 @@ classdef ELM < handle
             % and upper (second column) boundaries of the considered input
             % space: [x1_min, x1_max; ...].
             % * _num_outputs_: Number of model outputs.
-            % * _nodes_ [optional]: Nodes per layers. Default: 132
+            % * _nodes_ [optional]: Nodes contained in layer. Default: 132
             % * _approx_grid_dx_ [optional]: Approx. grid spacing for each
             % dimension of the input space:discretization in x1, x2, ...
             % Default: diff(x_limits, [], 2)/10
@@ -190,7 +192,7 @@ classdef ELM < handle
             obj.thetas = H_inv*y_train_N;
             obj.Initialization.thetas = obj.thetas;
                         
-            % Eval ELM
+            % Evaluate ELM
             [RMSE_train, RMSE_train_N] = obj.init_eval(x_train, y_train);
             if ~isempty(x_eval)
                 [RMSE_eval, RMSE_eval_N] = obj.init_eval(x_eval, y_eval);   
@@ -217,7 +219,7 @@ classdef ELM < handle
             rand_shift = width.*rand(size(x_init_buffer)) - width/2;
             x_init_buffer = x_init_buffer + rand_shift;
             
-            % Initialize GRB - prediction on support points with init ELM
+            % Initialize GRB - prediction on support points with initially trained ELM
             y_init_buffer = obj.init_pred(x_init_buffer);
             obj.Buffer.init(x_init_buffer, y_init_buffer);  
             
@@ -320,6 +322,8 @@ classdef ELM < handle
           % 
           % * _thetas_: Updated thetas.
           %
+          % Note: Optimization Toolbox for lsqlin-function required.
+          %
           %%%
           
           arguments
@@ -383,7 +387,7 @@ classdef ELM < handle
           %   [y_pred, y_pred_N, A] = cl_pred(obj, x)
           %%%
           %
-          % Performs prediction on current, continual updated model.
+          % Performs prediction on current, continually updated model.
           %
           % Arguments:
           %
@@ -417,7 +421,7 @@ classdef ELM < handle
           %%%
           %
           % Calculates the RMSE for a set of features and targets for
-          % current, continual updated model. 
+          % current, continually updated model. 
           %
           % Arguments:
           %
@@ -532,7 +536,7 @@ classdef ELM < handle
           %   ret = re_normalize(N, S, C)
           %%%
           %
-          % Static and private method for inverse of nomalization.
+          % Static and private method for inverse of zscore nomalization.
           %
           % Arguments:
           %

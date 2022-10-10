@@ -249,7 +249,8 @@ classdef GRB < matlab.mixin.Copyable
             %
             % Returns a specified number of samples (inputs and
             % corresponding outputs), which are equally distributed over
-            % the discretized input space. Specified bins can be excluded. 
+            % the discretized input space. Specified bins can be excluded 
+            % with exclude_bins parameter. 
             %
             % Arguments:
             %
