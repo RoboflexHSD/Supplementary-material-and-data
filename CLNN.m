@@ -28,8 +28,7 @@ classdef CLNN < handle
     %% Properties 
     % * _Architecture_: Struct containing information on the ANNs
     % architecture; *SetAccess*: immutable; *GetAccess*: public
-    % * _Buffer_: Gridded Ring Buffer (GRB) object to manage fraction of 
-    % historical data;
+    % * _Buffer_: Gridded Ring Buffer (GRB) object to manage historical data;
     % *SetAccess*: protected, *GetAccess*: public
     % * _BufferInitialized_: Copy of _Buffer_ that is created after 
     % initialization. Needed for resetting to the state after initial 
@@ -37,7 +36,7 @@ classdef CLNN < handle
     % * _Info_: Struct containing information about changes of the object; 
     % *SetAccess*: protected, *GetAccess*: public
     % * _Initialization_: Struct containing information about the initial
-    % training og the Neural Network; *SetAccess*: protected, *GetAccess*: 
+    % training of the Neural Network; *SetAccess*: protected, *GetAccess*: 
     % public
     % * _latest_updated_bins_: Array containing indices (columns) of bins
     % (rows) that should be excluded when calling the get-method of the GRB;
@@ -590,7 +589,7 @@ classdef CLNN < handle
           %   ret = re_normalize(N, S, C)
           %%%
           %
-          % Static and private method for inverse of zscore nomalization.
+          % Static and private method for inverse of nomalization.
           %
           % Arguments:
           %

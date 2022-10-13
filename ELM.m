@@ -9,8 +9,7 @@ classdef ELM < handle
     %% Properties 
     % * _Architecture_: Struct containing information on the ELMs
     % architecture; *SetAccess*: immutable; *GetAccess*: public
-    % * _Buffer_: Gridded Ring Buffer (GRB) object to manage fraction of 
-    % historical data;
+    % * _Buffer_: Gridded Ring Buffer (GRB) object to manage historical data;
     % *SetAccess*: protected, *GetAccess*: public
     % * _BufferInitialized_: Copy of _Buffer_ that is created after 
     % initialization. Needed for resetting to the state after initial 
@@ -92,7 +91,8 @@ classdef ELM < handle
             % and upper (second column) boundaries of the considered input
             % space: [x1_min, x1_max; ...].
             % * _num_outputs_: Number of model outputs.
-            % * _nodes_ [optional]: Nodes contained in layer. Default: 132
+            % * _nodes_ [optional]: Nodes contained in hidden layer. 
+            % Default: 132
             % * _approx_grid_dx_ [optional]: Approx. grid spacing for each
             % dimension of the input space:discretization in x1, x2, ...
             % Default: diff(x_limits, [], 2)/10
@@ -536,7 +536,7 @@ classdef ELM < handle
           %   ret = re_normalize(N, S, C)
           %%%
           %
-          % Static and private method for inverse of zscore nomalization.
+          % Static and private method for inverse of nomalization.
           %
           % Arguments:
           %
