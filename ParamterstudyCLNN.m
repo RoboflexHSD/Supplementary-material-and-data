@@ -1,14 +1,19 @@
 %% Paramterstudy for CLNN
+% Note: MATLAB Deep Learning Toolbox and MATLAB Optimization Toolbox
+% required!
+
 clear; clc; close all;
 spath = 'Results\';
 
 %% Fixed parameters
-% Data
+% Load Datasets into Matlab Workspace:
+%   1: Dataset for inital training
+%   2: Concept Drift dataset for continual learning phase
 data.init = load('Data\init.mat');
 data.cl = load('Data\A.mat');
 params.num_out = 1;
 
-% Support-Points for evaluation
+% Load Support-Points for evaluation
 eval_points = load('Data\eval_pointsA.mat');
 
 % Initial Training
