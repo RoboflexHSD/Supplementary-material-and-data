@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Extreme Learning Machine (ELM)</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-10-06"><meta name="DC.source" content="ELM.m"><style type="text/css">
+      --><title>Extreme Learning Machine (ELM)</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-10-13"><meta name="DC.source" content="ELM.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,14 +67,14 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Extreme Learning Machine (ELM)</h1><!--introduction--><p>Note: This implementation allows the weight change per iteration to be restricted.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Properties</a></li><li><a href="#3">Constructor</a></li><li><a href="#7">Methods</a></li><li><a href="#40">Static Methods</a></li></ul></div><h2 id="2">Properties</h2><div><ul><li><i>Architecture</i>: Struct containing information on the ELMs architecture; <b>SetAccess</b>: immutable; <b>GetAccess</b>: public</li><li><i>Buffer</i>: Gridded Ring Buffer object to manage historical data; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>BufferInitialized</i>: Copy of <i>Buffer</i> that is created after initialization. Needed for resetting to the state after initial training; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Info</i>: Struct containing information about changes of the object; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>Initialization</i>: Struct containing information about the initial training; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>latest_updated_bins</i>: Array containing indices (columns) of bins (rows) that should be excluded when calling the get-method of the GRB; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Normalization</i>: Struct containing information about the normalization of the input and output data; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>thetas</i>: Vector containing the weights, which are updated during the continual learning phase; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Updates</i>: Table containing information about the model updates during the continual learning phase; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>W</i>: Weights and biases of the hidden layer; <b>SetAccess</b>: immutable, <b>GetAccess</b>: private</li></ul></div><h2 id="3">Constructor</h2><pre class="language-matlab">obj = ELM(x_limits, num_outputs, nodes, approx_grid_dx, samples_per_bin)
-</pre><p>Creates an non-trained object of ELM with empty GRB.</p><p>Arguments:</p><div><ul><li><i>x_limits</i>: 2D-array containing the lower (first column) and upper (second column) boundaries of the considered input space: [x1_min, x1_max; ...].</li><li><i>num_outputs</i>: Number of model outputs.</li><li><i>nodes</i> [optional]: Nodes per layers. Default: 132</li><li><i>approx_grid_dx</i> [optional]: Approx. grid spacing for each dimension of the input space:discretization in x1, x2, ... Default: diff(x_limits, [], 2)/10</li><li><i>samples_per_bin</i> [optional]: number of samples per bin. Default: 5</li></ul></div><p>Returns:</p><div><ul><li><i>ELM-object</i></li></ul></div><h2 id="7">Methods</h2><pre class="language-matlab">[RMSE_train, RMSE_eval, RMSE_train_N, RMSE_eval_N] =
+  </style></head><body><div class="content"><h1>Extreme Learning Machine (ELM)</h1><!--introduction--><p>Note: This implementation allows the weight change per iteration to be restricted.</p><p><b>This class requires the MATLAB Optimization Toolbox!</b></p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Properties</a></li><li><a href="#3">Constructor</a></li><li><a href="#7">Methods</a></li><li><a href="#40">Static Methods</a></li></ul></div><h2 id="2">Properties</h2><div><ul><li><i>Architecture</i>: Struct containing information on the ELMs architecture; <b>SetAccess</b>: immutable; <b>GetAccess</b>: public</li><li><i>Buffer</i>: Gridded Ring Buffer (GRB) object to manage historical data; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>BufferInitialized</i>: Copy of <i>Buffer</i> that is created after initialization. Needed for resetting to the state after initial training; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Info</i>: Struct containing information about changes of the object; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>Initialization</i>: Struct containing information about the initial training; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>latest_updated_bins</i>: Array containing indices (columns) of bins (rows) that should be excluded when calling the get-method of the GRB; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Normalization</i>: Struct containing information about the normalization of the input and output data; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>thetas</i>: Vector containing the weights, which are updated during the continual learning phase; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Updates</i>: Table containing information about the model updates during the continual learning phase; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>W</i>: Weights and biases of the hidden layer; <b>SetAccess</b>: immutable, <b>GetAccess</b>: private</li></ul></div><h2 id="3">Constructor</h2><pre class="language-matlab">obj = ELM(x_limits, num_outputs, nodes, approx_grid_dx, samples_per_bin)
+</pre><p>Creates an non-trained object of ELM with empty GRB.</p><p>Arguments:</p><div><ul><li><i>x_limits</i>: 2D-array containing the lower (first column) and upper (second column) boundaries of the considered input space: [x1_min, x1_max; ...].</li><li><i>num_outputs</i>: Number of model outputs.</li><li><i>nodes</i> [optional]: Number of nodes contained in the hidden layer. Default: 132</li><li><i>approx_grid_dx</i> [optional]: Approx. grid spacing for each dimension of the input space:discretization in x1, x2, ... Default: diff(x_limits, [], 2)/10</li><li><i>samples_per_bin</i> [optional]: number of samples per bin. Default: 5</li></ul></div><p>Returns:</p><div><ul><li><i>ELM-object</i></li></ul></div><h2 id="7">Methods</h2><pre class="language-matlab">[RMSE_train, RMSE_eval, RMSE_train_N, RMSE_eval_N] =
 init_train(obj, x, y, eval_split)
 </pre><p>Performs initial training on static dataset.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li><li><i>eval_split</i> [optional]: fraction of data separated for validation. Default: 0</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE_train</i>: RMSE on training data.</li><li><i>RMSE_eval</i>: RMSE on validation data.</li><li><i>RMSE_train_N</i>: Normalized RMSE on training data.</li><li><i>RMSE_eval_N</i>: Normalized RMSE on validation data.</li></ul></div><pre class="language-matlab">[y_pred, y_pred_N] = init_pred(obj, x)
 </pre><p>Performs prediction on initial model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li></ul></div><p>Returns:</p><div><ul><li><i>y_pred</i>: Predictions on <i>x</i>.</li><li><i>y_pred_N</i>: Normalized predictions on <i>x</i>.</li></ul></div><pre class="language-matlab">RMSE = init_eval(obj, x, y)
-</pre><p>Calculates the RMSE for a set of features and targets for initial model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE</i>: RMSE for initial model.</li><li><i>RMSE_N</i>: Normalized RMSE for initial model.</li></ul></div><pre>  thetas = cl_update(obj, x_new, y_new, hf, deltatheta)</pre><p>Updates the ELM.</p><p>Arguments:</p><div><ul><li><i>x_new</i>: Inputs (rows: samples; cols: features).</li><li><i>y_new</i>: Outputs (rows: samples; cols: outputs).</li><li><i>hf</i> [optional]: Fraction of additional historical used for optimization. The historical data is extracted from the GRB. Default: 0.1</li><li><i>deltatheta</i> [optional]: Maximum absolute change of weights per iteration. If this value is empty ([]), no restriction is applied. Default: []</li></ul></div><p>Returns:</p><div><ul><li><i>thetas</i>: Updated thetas.</li></ul></div><pre class="language-matlab">[y_pred, y_pred_N, A] = cl_pred(obj, x)
-</pre><p>Performs prediction on current, continual updated model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li></ul></div><p>Returns:</p><div><ul><li><i>y_pred</i>: Predictions on <i>x</i>.</li><li><i>y_pred_N</i>: Normalized predictions on <i>x</i>.</li></ul></div><pre class="language-matlab">[RMSE, RMSE_N] = cl_eval(obj, x, y)
-</pre><p>Calculates the RMSE for a set of features and targets for current, continual updated model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE</i>: RMSE for initial model.</li><li><i>RMSE_N</i>: Normalized RMSE for initial model.</li></ul></div><pre>  get_thetas(obj)</pre><p>Returns the current thetas of the ELM-object.</p><p>Arguments:</p><div><ul><li><i>None</i></li></ul></div><p>Returns:</p><div><ul><li><i>thetas</i>: Current thetas.</li></ul></div><pre>  reset(obj)</pre><p>Resets the ELM-object to the state after initial training.</p><p>Arguments:</p><div><ul><li><i>None</i></li></ul></div><p>Returns:</p><div><ul><li><i>None</i></li></ul></div><h2 id="40">Static Methods</h2><pre class="language-matlab">out = activation(in)
+</pre><p>Calculates the RMSE for a set of features and targets for initial model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE</i>: RMSE for initial model.</li><li><i>RMSE_N</i>: Normalized RMSE for initial model.</li></ul></div><pre>  thetas = cl_update(obj, x_new, y_new, hf, deltatheta)</pre><p>Updates the ELM.</p><p>Arguments:</p><div><ul><li><i>x_new</i>: Inputs (rows: samples; cols: features).</li><li><i>y_new</i>: Outputs (rows: samples; cols: outputs).</li><li><i>hf</i> [optional]: Fraction of additional historical used for optimization. The historical data is extracted from the GRB. Default: 0.1</li><li><i>deltatheta</i> [optional]: Maximum absolute change of weights per iteration. If this value is empty ([]), no restriction is applied. Default: []</li></ul></div><p>Returns:</p><div><ul><li><i>thetas</i>: Updated thetas.</li></ul></div><p>Note: Optimization Toolbox for lsqlin-function required.</p><pre class="language-matlab">[y_pred, y_pred_N, A] = cl_pred(obj, x)
+</pre><p>Performs prediction on current, continually updated model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li></ul></div><p>Returns:</p><div><ul><li><i>y_pred</i>: Predictions on <i>x</i>.</li><li><i>y_pred_N</i>: Normalized predictions on <i>x</i>.</li></ul></div><pre class="language-matlab">[RMSE, RMSE_N] = cl_eval(obj, x, y)
+</pre><p>Calculates the RMSE for a set of features and targets for current, continually updated model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE</i>: RMSE for initial model.</li><li><i>RMSE_N</i>: Normalized RMSE for initial model.</li></ul></div><pre>  get_thetas(obj)</pre><p>Returns the current thetas of the ELM-object.</p><p>Arguments:</p><div><ul><li><i>None</i></li></ul></div><p>Returns:</p><div><ul><li><i>thetas</i>: Current thetas.</li></ul></div><pre>  reset(obj)</pre><p>Resets the ELM-object to the state after initial training.</p><p>Arguments:</p><div><ul><li><i>None</i></li></ul></div><p>Returns:</p><div><ul><li><i>None</i></li></ul></div><h2 id="40">Static Methods</h2><pre class="language-matlab">out = activation(in)
 </pre><p>Static and private method for activation.</p><p>Arguments:</p><div><ul><li><i>in</i>: Inputs.</li></ul></div><p>Returns:</p><div><ul><li><i>out</i>: Inputs activated with sigmoid function.</li></ul></div><pre class="language-matlab">ret = re_normalize(N, S, C)
 </pre><p>Static and private method for inverse of nomalization.</p><p>Arguments:</p><div><ul><li><i>N</i>: Normalized values.</li><li><i>S</i>: Scaling values.</li><li><i>C</i>: Centering values.</li></ul></div><p>Returns:</p><div><ul><li><i>ret</i>: Values.</li></ul></div><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
@@ -82,13 +82,14 @@ init_train(obj, x, y, eval_split)
 % Note: This implementation allows the weight change per iteration to be
 % restricted.
 %
+% *This class requires the MATLAB Optimization Toolbox!*
 %%
 
 classdef ELM < handle    
     %% Properties 
     % * _Architecture_: Struct containing information on the ELMs
     % architecture; *SetAccess*: immutable; *GetAccess*: public
-    % * _Buffer_: Gridded Ring Buffer object to manage historical data;
+    % * _Buffer_: Gridded Ring Buffer (GRB) object to manage historical data;
     % *SetAccess*: protected, *GetAccess*: public
     % * _BufferInitialized_: Copy of _Buffer_ that is created after 
     % initialization. Needed for resetting to the state after initial 
@@ -170,7 +171,9 @@ classdef ELM < handle
             % and upper (second column) boundaries of the considered input
             % space: [x1_min, x1_max; ...].
             % * _num_outputs_: Number of model outputs.
-            % * _nodes_ [optional]: Nodes per layers. Default: 132
+            % * _nodes_ [optional]: Number of nodes contained in the hidden
+            % layer.
+            % Default: 132
             % * _approx_grid_dx_ [optional]: Approx. grid spacing for each
             % dimension of the input space:discretization in x1, x2, ...
             % Default: diff(x_limits, [], 2)/10
@@ -270,7 +273,7 @@ classdef ELM < handle
             obj.thetas = H_inv*y_train_N;
             obj.Initialization.thetas = obj.thetas;
                         
-            % Eval ELM
+            % Evaluate ELM
             [RMSE_train, RMSE_train_N] = obj.init_eval(x_train, y_train);
             if ~isempty(x_eval)
                 [RMSE_eval, RMSE_eval_N] = obj.init_eval(x_eval, y_eval);   
@@ -297,7 +300,7 @@ classdef ELM < handle
             rand_shift = width.*rand(size(x_init_buffer)) - width/2;
             x_init_buffer = x_init_buffer + rand_shift;
             
-            % Initialize GRB - prediction on support points with init ELM
+            % Initialize GRB - prediction on support points with initially trained ELM
             y_init_buffer = obj.init_pred(x_init_buffer);
             obj.Buffer.init(x_init_buffer, y_init_buffer);  
             
@@ -400,6 +403,8 @@ classdef ELM < handle
           % 
           % * _thetas_: Updated thetas.
           %
+          % Note: Optimization Toolbox for lsqlin-function required.
+          %
           %%%
           
           arguments
@@ -463,7 +468,7 @@ classdef ELM < handle
           %   [y_pred, y_pred_N, A] = cl_pred(obj, x)
           %%%
           %
-          % Performs prediction on current, continual updated model.
+          % Performs prediction on current, continually updated model.
           %
           % Arguments:
           %
@@ -497,7 +502,7 @@ classdef ELM < handle
           %%%
           %
           % Calculates the RMSE for a set of features and targets for
-          % current, continual updated model. 
+          % current, continually updated model. 
           %
           % Arguments:
           %

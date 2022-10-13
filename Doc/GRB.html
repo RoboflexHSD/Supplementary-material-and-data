@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Gridded Ring Buffer (GRB)</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-10-06"><meta name="DC.source" content="GRB.m"><style type="text/css">
+      --><title>Gridded Ring Buffer (GRB)</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-10-13"><meta name="DC.source" content="GRB.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -71,7 +71,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 </pre><p>Creates an empty object of GRB.</p><p>Arguments:</p><div><ul><li><i>grid_bounds</i>: 2D-array containing the lower (first column) and upper (second column) boundaries of the considered input space: [x1_min, x1_max; ...].</li><li><i>y_num</i>: Number of outputs per sample / size of output space.</li><li><i>approx_grid_spacing</i> [optional]: Approx. grid spacing for each dimension of the discretized input space: discretization in x1, x2, ... Default: diff(grid_bounds, [], 2)/10</li><li><i>bins_depth</i> [optional]: Number samples to be stored per bin. Default: 1</li></ul></div><p>Returns:</p><div><ul><li><i>GRB-object</i></li></ul></div><h2 id="7">Methods</h2><pre class="language-matlab">init(obj, x, y)
 </pre><p>Initializes the GRB with given samples.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>None</i></li></ul></div><pre class="language-matlab">updated_bins = add(obj, x, y)
 </pre><p>Adds new samples to the buffer and overwrites older ones (fifo).</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>updated_bins</i>: Array containing indices (columns) of updated bins (rows).</li></ul></div><pre class="language-matlab">[ret_x, ret_y] = get(obj, num_samples, exclude_bins)
-</pre><p>Returns a specified number of samples (inputs and corresponding outputs), which are equally distributed over the discretized input space. Specified bins can be excluded.</p><p>Arguments:</p><div><ul><li><i>num_samples</i>: Number of samples that should be returned.</li><li><i>exclude_bins</i> [optional]: Array containing indices (columns) of bins (rows) that shold be excluded. Default: double.empty</li></ul></div><p>Returns:</p><div><ul><li><i>ret_x</i>: Inputs (rows: samples; cols: features).</li><li><i>ret_y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><pre class="language-matlab">[pos, width, depth] = bin_info(obj)
+</pre><p>Returns a specified number of samples (inputs and corresponding outputs), which are equally distributed over the discretized input space. Specified bins can be excluded with <i>exclude_bins</i> parameter.</p><p>Arguments:</p><div><ul><li><i>num_samples</i>: Number of samples that should be returned.</li><li><i>exclude_bins</i> [optional]: Array containing indices (columns) of bins (rows) that shold be excluded. Default: double.empty</li></ul></div><p>Returns:</p><div><ul><li><i>ret_x</i>: Inputs (rows: samples; cols: features).</li><li><i>ret_y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><pre class="language-matlab">[pos, width, depth] = bin_info(obj)
 </pre><p>Calculates and returns the centers of all bins.</p><p>Arguments</p><div><ul><li><i>None</i></li></ul></div><p>Returns</p><div><ul><li><i>pos</i>: Array containing positons of centers (columns) for all bins (rows).</li><li><i>width</i>: Size of bins per dimension.</li><li><i>depth</i>: Number samples to be stored per bin.</li></ul></div><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Gridded Ring Buffer (GRB)
@@ -325,7 +325,8 @@ classdef GRB < matlab.mixin.Copyable
             %
             % Returns a specified number of samples (inputs and
             % corresponding outputs), which are equally distributed over
-            % the discretized input space. Specified bins can be excluded. 
+            % the discretized input space. Specified bins can be excluded 
+            % with _exclude_bins_ parameter. 
             %
             % Arguments:
             %

@@ -91,7 +91,8 @@ classdef ELM < handle
             % and upper (second column) boundaries of the considered input
             % space: [x1_min, x1_max; ...].
             % * _num_outputs_: Number of model outputs.
-            % * _nodes_ [optional]: Nodes contained in hidden layer. 
+            % * _nodes_ [optional]: Number of nodes contained in the hidden
+            % layer.
             % Default: 132
             % * _approx_grid_dx_ [optional]: Approx. grid spacing for each
             % dimension of the input space:discretization in x1, x2, ...
