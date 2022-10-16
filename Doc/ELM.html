@@ -1,0 +1,640 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Extreme Learning Machine (ELM)</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-10-13"><meta name="DC.source" content="ELM.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Extreme Learning Machine (ELM)</h1><!--introduction--><p>Note: This implementation allows the weight change per iteration to be restricted.</p><p><b>This class requires the MATLAB Optimization Toolbox!</b></p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#2">Properties</a></li><li><a href="#3">Constructor</a></li><li><a href="#7">Methods</a></li><li><a href="#40">Static Methods</a></li></ul></div><h2 id="2">Properties</h2><div><ul><li><i>Architecture</i>: Struct containing information on the ELMs architecture; <b>SetAccess</b>: immutable; <b>GetAccess</b>: public</li><li><i>Buffer</i>: Gridded Ring Buffer (GRB) object to manage historical data; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>BufferInitialized</i>: Copy of <i>Buffer</i> that is created after initialization. Needed for resetting to the state after initial training; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Info</i>: Struct containing information about changes of the object; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>Initialization</i>: Struct containing information about the initial training; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>latest_updated_bins</i>: Array containing indices (columns) of bins (rows) that should be excluded when calling the get-method of the GRB; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Normalization</i>: Struct containing information about the normalization of the input and output data; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>thetas</i>: Vector containing the weights, which are updated during the continual learning phase; <b>SetAccess</b>: private, <b>GetAccess</b>: private</li><li><i>Updates</i>: Table containing information about the model updates during the continual learning phase; <b>SetAccess</b>: protected, <b>GetAccess</b>: public</li><li><i>W</i>: Weights and biases of the hidden layer; <b>SetAccess</b>: immutable, <b>GetAccess</b>: private</li></ul></div><h2 id="3">Constructor</h2><pre class="language-matlab">obj = ELM(x_limits, num_outputs, nodes, approx_grid_dx, samples_per_bin)
+</pre><p>Creates an non-trained object of ELM with empty GRB.</p><p>Arguments:</p><div><ul><li><i>x_limits</i>: 2D-array containing the lower (first column) and upper (second column) boundaries of the considered input space: [x1_min, x1_max; ...].</li><li><i>num_outputs</i>: Number of model outputs.</li><li><i>nodes</i> [optional]: Number of nodes contained in the hidden layer. Default: 132</li><li><i>approx_grid_dx</i> [optional]: Approx. grid spacing for each dimension of the input space:discretization in x1, x2, ... Default: diff(x_limits, [], 2)/10</li><li><i>samples_per_bin</i> [optional]: number of samples per bin. Default: 5</li></ul></div><p>Returns:</p><div><ul><li><i>ELM-object</i></li></ul></div><h2 id="7">Methods</h2><pre class="language-matlab">[RMSE_train, RMSE_eval, RMSE_train_N, RMSE_eval_N] =
+init_train(obj, x, y, eval_split)
+</pre><p>Performs initial training on static dataset.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li><li><i>eval_split</i> [optional]: fraction of data separated for validation. Default: 0</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE_train</i>: RMSE on training data.</li><li><i>RMSE_eval</i>: RMSE on validation data.</li><li><i>RMSE_train_N</i>: Normalized RMSE on training data.</li><li><i>RMSE_eval_N</i>: Normalized RMSE on validation data.</li></ul></div><pre class="language-matlab">[y_pred, y_pred_N] = init_pred(obj, x)
+</pre><p>Performs prediction on initial model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li></ul></div><p>Returns:</p><div><ul><li><i>y_pred</i>: Predictions on <i>x</i>.</li><li><i>y_pred_N</i>: Normalized predictions on <i>x</i>.</li></ul></div><pre class="language-matlab">RMSE = init_eval(obj, x, y)
+</pre><p>Calculates the RMSE for a set of features and targets for initial model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE</i>: RMSE for initial model.</li><li><i>RMSE_N</i>: Normalized RMSE for initial model.</li></ul></div><pre>  thetas = cl_update(obj, x_new, y_new, hf, deltatheta)</pre><p>Updates the ELM.</p><p>Arguments:</p><div><ul><li><i>x_new</i>: Inputs (rows: samples; cols: features).</li><li><i>y_new</i>: Outputs (rows: samples; cols: outputs).</li><li><i>hf</i> [optional]: Fraction of additional historical used for optimization. The historical data is extracted from the GRB. Default: 0.1</li><li><i>deltatheta</i> [optional]: Maximum absolute change of weights per iteration. If this value is empty ([]), no restriction is applied. Default: []</li></ul></div><p>Returns:</p><div><ul><li><i>thetas</i>: Updated thetas.</li></ul></div><p>Note: Optimization Toolbox for lsqlin-function required.</p><pre class="language-matlab">[y_pred, y_pred_N, A] = cl_pred(obj, x)
+</pre><p>Performs prediction on current, continually updated model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li></ul></div><p>Returns:</p><div><ul><li><i>y_pred</i>: Predictions on <i>x</i>.</li><li><i>y_pred_N</i>: Normalized predictions on <i>x</i>.</li></ul></div><pre class="language-matlab">[RMSE, RMSE_N] = cl_eval(obj, x, y)
+</pre><p>Calculates the RMSE for a set of features and targets for current, continually updated model.</p><p>Arguments:</p><div><ul><li><i>x</i>: Inputs (rows: samples; cols: features).</li><li><i>y</i>: Outputs (rows: samples; cols: outputs).</li></ul></div><p>Returns:</p><div><ul><li><i>RMSE</i>: RMSE for initial model.</li><li><i>RMSE_N</i>: Normalized RMSE for initial model.</li></ul></div><pre>  get_thetas(obj)</pre><p>Returns the current thetas of the ELM-object.</p><p>Arguments:</p><div><ul><li><i>None</i></li></ul></div><p>Returns:</p><div><ul><li><i>thetas</i>: Current thetas.</li></ul></div><pre>  reset(obj)</pre><p>Resets the ELM-object to the state after initial training.</p><p>Arguments:</p><div><ul><li><i>None</i></li></ul></div><p>Returns:</p><div><ul><li><i>None</i></li></ul></div><h2 id="40">Static Methods</h2><pre class="language-matlab">out = activation(in)
+</pre><p>Static and private method for activation.</p><p>Arguments:</p><div><ul><li><i>in</i>: Inputs.</li></ul></div><p>Returns:</p><div><ul><li><i>out</i>: Inputs activated with sigmoid function.</li></ul></div><pre class="language-matlab">ret = re_normalize(N, S, C)
+</pre><p>Static and private method for inverse of nomalization.</p><p>Arguments:</p><div><ul><li><i>N</i>: Normalized values.</li><li><i>S</i>: Scaling values.</li><li><i>C</i>: Centering values.</li></ul></div><p>Returns:</p><div><ul><li><i>ret</i>: Values.</li></ul></div><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Extreme Learning Machine (ELM)
+% Note: This implementation allows the weight change per iteration to be
+% restricted.
+%
+% *This class requires the MATLAB Optimization Toolbox!*
+%%
+
+classdef ELM < handle    
+    %% Properties 
+    % * _Architecture_: Struct containing information on the ELMs
+    % architecture; *SetAccess*: immutable; *GetAccess*: public
+    % * _Buffer_: Gridded Ring Buffer (GRB) object to manage historical data;
+    % *SetAccess*: protected, *GetAccess*: public
+    % * _BufferInitialized_: Copy of _Buffer_ that is created after 
+    % initialization. Needed for resetting to the state after initial 
+    % training; *SetAccess*: private, *GetAccess*: private  
+    % * _Info_: Struct containing information about changes of the object; 
+    % *SetAccess*: protected, *GetAccess*: public
+    % * _Initialization_: Struct containing information about the initial
+    % training; *SetAccess*: protected, *GetAccess*: public
+    % * _latest_updated_bins_: Array containing indices (columns) of bins
+    % (rows) that should be excluded when calling the get-method of the GRB; 
+    % *SetAccess*: private, *GetAccess*: private
+    % * _Normalization_: Struct containing information about the
+    % normalization of the input and output data; *SetAccess*: private,
+    % *GetAccess*: private 
+    % * _thetas_: Vector containing the weights, which are updated during
+    % the continual learning phase; *SetAccess*: private, *GetAccess*:
+    % private 
+    % * _Updates_: Table containing information about the model updates 
+    % during the continual learning phase; *SetAccess*: protected,
+    % *GetAccess*: public 
+    % * _W_: Weights and biases of the hidden layer; *SetAccess*: immutable,
+    % *GetAccess*: private 
+    
+    properties(SetAccess = immutable, GetAccess = public)
+        Architecture = struct(  'num_inputs', NaN, ...
+                                'num_outputs', NaN, ...
+                                'num_nodes', NaN...
+                                );
+    end
+    
+    properties(SetAccess = protected, GetAccess = public)
+        Buffer = GRB.empty;
+        Initialization = struct('thetas', NaN, ...
+                                'num_train', NaN, ...
+                                'num_eval', NaN, ...
+                                'RMSE_train', NaN, ...
+                                'RMSE_eval', NaN, ...
+                                'RMSE_train_N', NaN, ...
+                                'RMSE_eval_N', NaN ...
+                                );      
+        Updates = table('Size',[0, 4], ...
+                        'VariableTypes', {'double', 'double', 'double', 'double'},...
+                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta'} ...
+                        );
+        Info = struct(  'Build', NaN, ...
+                        'Initialization', NaN, ...
+                        'LatestUpdate', NaN, ...
+                        'LatestReset', NaN ...
+                        );
+    end
+    
+    properties(SetAccess = immutable, GetAccess = private)
+        W;
+    end
+    
+    properties(SetAccess = private, GetAccess = private)
+        Normalization = struct( 'C_in', NaN, ...
+                                'S_in', NaN, ...
+                                'C_out', NaN, ...
+                                'S_out', NaN ...
+                                );         
+        thetas;
+        latest_updated_bins;
+        BufferInitialized = GRB.empty;
+    end
+    
+    methods
+        %% Constructor
+        function obj = ELM(x_limits, num_outputs, nodes, approx_grid_dx, samples_per_bin)
+            %%%
+            %   obj = ELM(x_limits, num_outputs, nodes, approx_grid_dx, samples_per_bin) 
+            %%%
+            %
+            % Creates an non-trained object of ELM with empty GRB. 
+            %
+            % Arguments:
+            %
+            % * _x_limits_: 2D-array containing the lower (first column)
+            % and upper (second column) boundaries of the considered input
+            % space: [x1_min, x1_max; ...].
+            % * _num_outputs_: Number of model outputs.
+            % * _nodes_ [optional]: Number of nodes contained in the hidden
+            % layer.
+            % Default: 132
+            % * _approx_grid_dx_ [optional]: Approx. grid spacing for each
+            % dimension of the input space:discretization in x1, x2, ...
+            % Default: diff(x_limits, [], 2)/10
+            % * _samples_per_bin_ [optional]: number of samples per bin. 
+            % Default: 5
+            %
+            % Returns: 
+            %
+            % * _ELM-object_
+            %
+            %%%
+            
+            arguments
+                x_limits (:,2) double                                                   
+                num_outputs (1,1) {mustBePositive, mustBeInteger}
+                nodes (1,1) {mustBePositive, mustBeInteger} = 132;
+                approx_grid_dx (:,1) double {mustBePositive} = diff(x_limits, [], 2)/10;
+                samples_per_bin (1,1) {mustBePositive, mustBeInteger} = 5;
+            end
+            assert(all(x_limits(:,1)<x_limits(:,2), 'all'), ...
+                'Lower limits in ''x_limits'' (first column) must have lower values than upper limits (second column)!')
+            if sum(approx_grid_dx>diff(x_limits, [], 2)/2)>0
+                warning("Check discretization: At least one dimension has one bin only.")
+            end
+          
+            % Set properties
+            obj.Architecture.num_inputs = size(x_limits,1);
+            obj.Architecture.num_outputs = num_outputs;
+            obj.Architecture.num_nodes = nodes;            
+            obj.Info.Build = datetime;
+            
+            % Set random weights and biases for the hidden layer
+            obj.W = (rand(obj.Architecture.num_inputs+1, nodes)-0.5)*2;
+            
+            % Setup GRB
+            obj.Buffer = GRB(x_limits, num_outputs, approx_grid_dx, samples_per_bin);      
+        end
+      
+      %% Methods
+      function [RMSE_train, RMSE_eval, ...
+                RMSE_train_N, RMSE_eval_N] = init_train(obj, x, y, eval_split)
+            %%% 
+            %   [RMSE_train, RMSE_eval, RMSE_train_N, RMSE_eval_N] =
+            %   init_train(obj, x, y, eval_split) 
+            %%%
+            %
+            % Performs initial training on static dataset. 
+            %
+            % Arguments: 
+            %
+            % * _x_: Inputs (rows: samples; cols: features).
+            % * _y_: Outputs (rows: samples; cols: outputs).
+            % * _eval_split_ [optional]: fraction of data separated for
+            % validation. Default: 0
+            %
+            % Returns: 
+            % 
+            % * _RMSE_train_: RMSE on training data.
+            % * _RMSE_eval_: RMSE on validation data.
+            % * _RMSE_train_N_: Normalized RMSE on training data.
+            % * _RMSE_eval_N_: Normalized RMSE on validation data.
+            %
+            %%%
+            
+            arguments
+                obj
+                x double 
+                y double 
+                eval_split double {mustBeInRange(eval_split, 0, 1)} = 0;
+            end
+            assert(size(x,2) == obj.Architecture.num_inputs, ...
+                'Size of x has to fit to obj.Architecture.num_inputs.')
+            assert(size(y,2) == obj.Architecture.num_outputs, ...
+                'Size of y has to fit to obj.Architecture.num_outputs.')
+            assert(size(x,1) == size(y,1), ...
+                'Size of x has to fit to size of y.')           
+          
+            % Shuffle data
+            idx = randperm(size(x,1));
+            x = x(idx,:);
+            y = y(idx,:);
+            
+            % Split data in train and eval
+            idx = ceil(size(x,1)*(1-eval_split));
+            x_train = x(1:idx,:);
+            y_train = y(1:idx,:);
+            x_eval = x(idx+1:end,:);
+            y_eval = y(idx+1:end,:);
+            
+            % Normalize data
+            [x_train_N, obj.Normalization.C_in, obj.Normalization.S_in] = normalize(x_train, 'zscore');
+            [y_train_N, obj.Normalization.C_out, obj.Normalization.S_out] = normalize(y_train, 'zscore');
+            
+            % Train ELM
+            H = obj.activation([x_train_N, ones(size(x_train_N,1),1)]*obj.W);
+            H_inv = pinv(H);
+            obj.thetas = H_inv*y_train_N;
+            obj.Initialization.thetas = obj.thetas;
+                        
+            % Evaluate ELM
+            [RMSE_train, RMSE_train_N] = obj.init_eval(x_train, y_train);
+            if ~isempty(x_eval)
+                [RMSE_eval, RMSE_eval_N] = obj.init_eval(x_eval, y_eval);   
+            else 
+                RMSE_eval = NaN;
+                RMSE_eval_N = NaN;
+            end    
+            
+            % Set properties
+            obj.Initialization.num_train = size(x_train,1);
+            obj.Initialization.num_eval = size(x_eval,1);
+            obj.Initialization.RMSE_train = RMSE_train;
+            obj.Initialization.RMSE_train_N = RMSE_train_N;
+            obj.Info.Initialization = datetime;
+            if ~isempty(x_eval)
+                obj.Initialization.RMSE_eval = RMSE_eval;
+                obj.Initialization.RMSE_eval_N = RMSE_eval_N;
+            end
+            
+            % Initialize GRB - set support points
+            [pos, width, depth] = obj.Buffer.bin_info();
+            width = width'- 1e-12; % numerical reasons
+            x_init_buffer = repmat(pos, [depth, 1]);
+            rand_shift = width.*rand(size(x_init_buffer)) - width/2;
+            x_init_buffer = x_init_buffer + rand_shift;
+            
+            % Initialize GRB - prediction on support points with initially trained ELM
+            y_init_buffer = obj.init_pred(x_init_buffer);
+            obj.Buffer.init(x_init_buffer, y_init_buffer);  
+            
+            % Copy initialized GRB to allow resets
+            obj.BufferInitialized = copy(obj.Buffer);
+      end
+      % ============================== EOF ============================== %      
+      
+      %%
+      function [y_pred, y_pred_N] = init_pred(obj, x)
+          %%%
+          %   [y_pred, y_pred_N] = init_pred(obj, x)
+          %%%
+          %
+          % Performs prediction on initial model.
+          %
+          % Arguments:
+          %
+          % * _x_: Inputs (rows: samples; cols: features).
+          %
+          % Returns: 
+          %
+          % * _y_pred_: Predictions on _x_.
+          % * _y_pred_N_: Normalized predictions on _x_.
+          %
+          %%%
+          
+          arguments
+                obj
+                x double 
+          end
+          assert(size(x,2) == obj.Architecture.num_inputs, ...
+                'Size of x has to fit to obj.Architecture.num_inputs.')
+          
+          x_N = normalize(x, 'center', obj.Normalization.C_in, 'scale', obj.Normalization.S_in); 
+          H = obj.activation([x_N, ones(size(x_N,1),1)]*obj.W);
+          y_pred_N = H*obj.thetas;
+          y_pred = obj.re_normalize(y_pred_N, obj.Normalization.S_out, obj.Normalization.C_out);
+      end
+      % ============================== EOF ============================== %
+      
+      %% 
+      function [RMSE, RMSE_N] = init_eval(obj, x, y)
+          %%%
+          %   RMSE = init_eval(obj, x, y)
+          %%%
+          %
+          % Calculates the RMSE for a set of features and targets for
+          % initial model. 
+          %
+          % Arguments:
+          %
+          % * _x_: Inputs (rows: samples; cols: features).
+          % * _y_: Outputs (rows: samples; cols: outputs).
+          % 
+          % Returns:
+          %
+          % * _RMSE_: RMSE for initial model.
+          % * _RMSE_N_: Normalized RMSE for initial model.
+          %
+          %%%
+          
+          assert(size(x,2) == obj.Architecture.num_inputs, ...
+                'Size of ''x'' has to fit to ''obj.Architecture.num_inputs''.')
+          assert(size(y,2) == obj.Architecture.num_outputs, ...
+                'Size of ''y'' has to fit to ''obj.Architecture.num_outputs''.')
+          assert(size(x,1) == size(y,1), ...
+                'Size of ''x'' has to fit to size of ''y''.')
+          
+          % RMSE
+          [y_pred, y_pred_N] = obj.init_pred(x);
+          RMSE = sqrt(mean((y_pred - y).^2));
+          
+          % Normalized RMSE
+          y_N = normalize(y, 'center', obj.Normalization.C_out, 'scale', obj.Normalization.S_out);
+          RMSE_N = sqrt(mean((y_pred_N - y_N).^2));
+      end
+      % ============================== EOF ============================== %
+      
+      %% 
+      function thetas = cl_update(obj, x_new, y_new, hf, deltatheta)
+          %%%
+          %    thetas = cl_update(obj, x_new, y_new, hf, deltatheta)
+          %%%
+          %
+          % Updates the ELM.
+          %
+          % Arguments:
+          %
+          % * _x_new_: Inputs (rows: samples; cols: features).
+          % * _y_new_: Outputs (rows: samples; cols: outputs).
+          % * _hf_ [optional]: Fraction of additional historical used for
+          % optimization. The historical data is extracted from the GRB.
+          % Default: 0.1
+          % * _deltatheta_ [optional]: Maximum absolute change of weights
+          % per iteration. If this value is empty ([]), no restriction is
+          % applied. Default: [] 
+          %
+          % Returns: 
+          % 
+          % * _thetas_: Updated thetas.
+          %
+          % Note: Optimization Toolbox for lsqlin-function required.
+          %
+          %%%
+          
+          arguments
+              obj
+              x_new double
+              y_new double
+              hf (1,1) double {mustBeInRange(hf, 0, 1)} = 0.1;
+              deltatheta  double {mustBePositive, mustBeScalarOrEmpty} = [];
+          end
+          assert(size(x_new,2) == obj.Architecture.num_inputs, ...
+                'Size of x_new has to fit to obj.Architecture.num_inputs.')
+          assert(size(y_new,2) == obj.Architecture.num_outputs, ...
+                'Size of y_new has to fit to obj.Architecture.num_outputs.')
+          assert(size(x_new,1) == size(y_new,1), ...
+                'Size of x_new has to fit to size of y_new.')
+          
+          % Find number of elements from data stream
+          ds = size(x_new,1);
+          
+          % Get samples form GRB, ignoring the bins, which were updated by
+          % the latest call of this method
+          if hf~=0
+            [x_buffer, y_buffer] = obj.Buffer.get(ceil(ds*hf), ...
+                                                obj.latest_updated_bins);
+          else
+              x_buffer = [];
+              y_buffer = [];
+          end
+          
+          % Update GRB with the new samples
+          obj.latest_updated_bins = obj.Buffer.add(x_new, y_new);
+          
+          % Bulid batch
+          x = [x_new; x_buffer];
+          y = [y_new; y_buffer];
+          
+          % Train
+          x_N = normalize(x, 'center', obj.Normalization.C_in, 'scale', obj.Normalization.S_in);  
+          y_N = normalize(y, 'center', obj.Normalization.C_out, 'scale', obj.Normalization.S_out); 
+          H = obj.activation([x_N, ones(size(x_N,1),1)]*obj.W);
+          if isempty(deltatheta)
+            H_inv = pinv(H);
+            thetas = H_inv*y_N;
+          else
+              options = optimoptions('lsqlin','Algorithm','interior-point','Diagnostics','off','Display','off');
+              lb = double(obj.thetas-deltatheta); 
+              ub = double(obj.thetas+deltatheta); 
+              thetas = lsqlin(double(H),y_N,[],[],[],[],lb,ub,[],options);
+          end
+          
+          % Set properties
+          obj.thetas = thetas;
+          obj.Updates = [obj.Updates; {size(obj.Updates,1)+1, ds, hf, deltatheta}];
+          obj.Info.LatestUpdate = datetime;
+      end
+      % ============================== EOF ============================== %
+           
+      %%
+      function [y_pred, y_pred_N] = cl_pred(obj, x) 
+          %%%
+          %   [y_pred, y_pred_N, A] = cl_pred(obj, x)
+          %%%
+          %
+          % Performs prediction on current, continually updated model.
+          %
+          % Arguments:
+          %
+          % * _x_: Inputs (rows: samples; cols: features).
+          %
+          % Returns: 
+          %
+          % * _y_pred_: Predictions on _x_.
+          % * _y_pred_N_: Normalized predictions on _x_.
+          %
+          %%%
+          
+          arguments
+                obj
+                x double 
+          end
+          assert(size(x,2) == obj.Architecture.num_inputs, ...
+                'Size of x has to fit to obj.Architecture.num_inputs.')
+          
+          x_N = normalize(x, 'center', obj.Normalization.C_in, 'scale', obj.Normalization.S_in);  
+          H = obj.activation([x_N, ones(size(x_N,1),1)]*obj.W);
+          y_pred_N = H*obj.thetas;
+          y_pred = obj.re_normalize(y_pred_N, obj.Normalization.S_out, obj.Normalization.C_out);
+      end
+      % ============================== EOF ============================== %
+                  
+      %%
+      function [RMSE, RMSE_N] = cl_eval(obj, x, y)
+          %%%
+          %   [RMSE, RMSE_N] = cl_eval(obj, x, y)
+          %%%
+          %
+          % Calculates the RMSE for a set of features and targets for
+          % current, continually updated model. 
+          %
+          % Arguments:
+          %
+          % * _x_: Inputs (rows: samples; cols: features).
+          % * _y_: Outputs (rows: samples; cols: outputs).
+          %
+          % Returns:
+          %
+          % * _RMSE_: RMSE for initial model.
+          % * _RMSE_N_: Normalized RMSE for initial model.
+          %
+          %%% 
+          
+          assert(size(x,2) == obj.Architecture.num_inputs, ...
+                'Size of ''x'' has to fit to ''obj.Architecture.num_inputs''.')
+          assert(size(y,2) == obj.Architecture.num_outputs, ...
+                'Size of ''y'' has to fit to ''obj.Architecture.num_outputs''.')
+          assert(size(x,1) == size(y,1), ...
+                'Size of ''x'' has to fit to size of ''y''.')
+
+          % RMSE
+          [y_pred, y_pred_N] = obj.cl_pred(x);
+          RMSE = sqrt(mean((y_pred - y).^2));
+          
+          % Normalized RMSE
+          y_N = normalize(y, 'center', obj.Normalization.C_out, 'scale', obj.Normalization.S_out);
+          RMSE_N = sqrt(mean((y_pred_N - y_N).^2));
+      end
+      % ============================== EOF ============================== %
+            
+      %% 
+      function thetas = get_thetas(obj)
+          %%%
+          %    get_thetas(obj)
+          %%%
+          %
+          % Returns the current thetas of the ELM-object.
+          %
+          % Arguments:
+          %
+          % * _None_
+          %
+          % Returns: 
+          % 
+          % * _thetas_: Current thetas.
+          %
+          %%%
+          
+          thetas = obj.thetas;
+      end
+      % ============================== EOF ============================== %
+      
+      %% 
+      function reset(obj)
+          %%%
+          %    reset(obj)
+          %%%
+          %
+          % Resets the ELM-object to the state after initial training.
+          %
+          % Arguments:
+          %
+          % * _None_
+          %
+          % Returns: 
+          % 
+          % * _None_
+          %
+          %%%
+          
+          obj.Buffer = copy(obj.BufferInitialized);
+          obj.thetas = obj.Initialization.thetas;
+          obj.latest_updated_bins = double.empty;
+          obj.Updates = table('Size',[0, 4], ...
+                        'VariableTypes', {'double', 'double', 'double', 'double'},...
+                        'VariableNames',{'No', 'ds', 'hf', 'deltatheta'} ...
+                        );
+          obj.Info.LatestUpdate = NaN;
+          obj.Info.LatestReset = datetime;
+      end
+      % ============================== EOF ============================== %
+    
+   end
+   
+   %% Static Methods 
+   methods (Static, Access = private)
+       
+      function out = activation(in)
+          %%%
+          %   out = activation(in)
+          %%%
+          %
+          % Static and private method for activation.
+          %
+          % Arguments:
+          %
+          % * _in_: Inputs.
+          % 
+          % Returns:
+          %
+          % * _out_: Inputs activated with sigmoid function.
+          %
+          %%%
+          
+          % Sigmoid-function
+          out = 1./(1+exp(-in));
+      end
+       
+       
+      function ret = re_normalize(N, S, C)
+          %%%
+          %   ret = re_normalize(N, S, C)
+          %%%
+          %
+          % Static and private method for inverse of nomalization.
+          %
+          % Arguments:
+          %
+          % * _N_: Normalized values.
+          % * _S_: Scaling values.
+          % * _C_: Centering values.
+          % 
+          % Returns:
+          %
+          % * _ret_: Values.
+          %
+          %%%
+          
+          ret = N.*S+C;
+      end
+      % ============================== EOF ============================== %
+  end
+end
+##### SOURCE END #####
+--></body></html>
