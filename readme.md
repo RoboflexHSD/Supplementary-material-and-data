@@ -1,5 +1,5 @@
 # Supplementary material and data
-Supplementary material and data for publication “Continual learning for neural regression networks to cope with concept drift in industrial processes using convex optimisation”.
+Supplementary material and data for publication “Continual learning for neural regression networks to cope with concept drift in industrial processes using convex optimisation” (https://doi.org/10.1016/j.engappai.2023.105927).
 #### Abbreviations
 Continual Learning Neural Network (CLNN) <br />
 Extreme Learning Machine (ELM) <br />
