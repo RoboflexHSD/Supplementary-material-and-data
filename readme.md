@@ -1,5 +1,5 @@
 # Supplementary material and data
-Supplementary material and data for publication “Continual learning for neural regression networks to cope with concept drift in industrial processes using convex optimisation”.
+Supplementary material and data for publication “Continual learning for neural regression networks to cope with concept drift in industrial processes using convex optimisation” (https://doi.org/10.1016/j.engappai.2023.105927).
 #### Abbreviations
 Continual Learning Neural Network (CLNN) <br />
 Extreme Learning Machine (ELM) <br />
@@ -40,3 +40,14 @@ Matlab Script containing an implementation of the GRB. Here, for convenient hand
 Matlab Script including the carried out parameter study in publication. Here, the use of the class "CLNN" can be viewed exemplarily.
 ### ParameterstudyELM.m
 Matlab Script including the carried out parameter study in publication. Here, the use of the class "ELM" can be viewed exemplarily.
+# Citation
+
+    @article{GROTERAMM2023105927,
+        title = {Continual learning for neural regression networks to cope with concept drift in industrial processes using convex optimisation},
+        author = {Wolfgang Grote-Ramm and David Lanuschny and Finn Lorenzen and Marcel {Oliveira Brito} and Felix Schönig},
+        journal = {Engineering Applications of Artificial Intelligence},
+        volume = {120},
+        pages = {105927},
+        year = {2023},
+        doi = {https://doi.org/10.1016/j.engappai.2023.105927},
+        }
